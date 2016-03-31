@@ -1,4 +1,4 @@
-CC = gcc
+CC = $(CROSS_COMPILE)gcc
 CFLAGS = -g -Wall -I../../../csrc/. -I../common -DU8G_LINUX -DU8G_WITH_PINLIST
 
 APP = $(notdir $(shell pwd))
