@@ -281,6 +281,18 @@ uint8_t u8g_InitI2C(u8g_t *u8g, u8g_dev_t *dev, uint8_t options)
   return u8g_Begin(u8g);
 }
 
+uint8_t u8g_InitI2CRst(u8g_t *u8g, u8g_dev_t *dev, uint8_t options, uint8_t rst_gpio)
+{
+  /* fill data structure with some suitable values */
+  u8g_init_data(u8g);
+  u8g->dev = dev;
+
+  u8g->pin_list[U8G_PI_I2C_OPTION] = options;
+  u8g->pin_list[U8G_PI_RESET] = rst_gpio;
+
+  return u8g_Begin(u8g);
+}
+
 
 uint8_t u8g_Init8BitFixedPort(u8g_t *u8g, u8g_dev_t *dev, uint8_t en, uint8_t cs, uint8_t di, uint8_t rw, uint8_t reset)
 {

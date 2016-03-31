@@ -62,8 +62,16 @@
 #define I2C_DATA_MODE	0x40
 #define MAX_PACKET      64
 
+
 #ifndef U8G_WITH_PINLIST
 #error U8G_WITH_PINLIST is mandatory for this driver
+#endif
+
+#ifndef SYS_GPIO_PREFIX
+# define SYS_GPIO_PREFIX "/sys/class/gpio"
+#endif
+#ifndef SYS_GPIO_OFFSET
+# define SYS_GPIO_OFFSET 906
 #endif
 
 static void set_cmd_mode(u8g_t *u8g, bool cmd_mode)
@@ -112,6 +120,8 @@ uint8_t u8g_com_linux_ssd_i2c_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
 {
   static int fd = -1;
   char dev[24];
+  char buf[128];
+  FILE * f;
 
   switch(msg)
   {
@@ -135,7 +145,35 @@ uint8_t u8g_com_linux_ssd_i2c_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
       break;
 
     case U8G_COM_MSG_RESET:
-      /* ignored - no obvious means to reset an SSD via I2C */
+      if(u8g->pin_list[U8G_PI_RESET]==0xFF) return 0; /* Skip if pin is not defined */
+      /* Export GPIO */
+      snprintf(buf,sizeof(buf),"%s/export",SYS_GPIO_PREFIX);
+      f = fopen(buf,"w");
+      if(!f) { fprintf(stderr, "error opening %s (%s)\n", buf, strerror(errno)); return 0; }
+      snprintf(buf,sizeof(buf),"%d",SYS_GPIO_OFFSET+u8g->pin_list[U8G_PI_RESET]);
+      fprintf(f,buf);
+      fclose(f);
+      /* Set correct direction */
+      sprintf(buf,"%s/gpio%d/direction",SYS_GPIO_PREFIX,SYS_GPIO_OFFSET+u8g->pin_list[U8G_PI_RESET]);
+      f = fopen(buf,"w");
+      if(!f) { fprintf(stderr, "error opening %s (%s)\n", buf, strerror(errno)); return 0; }
+      fprintf(f,"out");
+      fclose(f);
+      /* Toogle on/off */
+      sprintf(buf,"%s/gpio%d/value",SYS_GPIO_PREFIX,SYS_GPIO_OFFSET+u8g->pin_list[U8G_PI_RESET]);
+      f = fopen(buf,"w");
+      if(!f) { fprintf(stderr, "error opening %s (%s)\n", buf, strerror(errno)); return 0; }
+      fprintf(f,"0");
+      usleep(100);
+      fprintf(f,"1");
+      fclose(f);
+      /* unexport GPIO */
+      snprintf(buf,sizeof(buf),"%s/unexport",SYS_GPIO_PREFIX);
+      f = fopen(buf,"w");
+      if(!f) { fprintf(stderr, "error opening %s (%s)\n", buf, strerror(errno)); return 0; }
+      snprintf(buf,sizeof(buf),"%d",SYS_GPIO_OFFSET+u8g->pin_list[U8G_PI_RESET]);
+      fprintf(f,buf);
+      fclose(f);
       break;
 
     case U8G_COM_MSG_CHIP_SELECT:
