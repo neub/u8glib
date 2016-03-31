@@ -9,6 +9,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*========================================================================*/
+/*
+  The following delay procedures must be implemented for u8glib
+
+  void u8g_Delay(uint16_t val)		Delay by "val" milliseconds
+  void u8g_MicroDelay(void)		Delay be one microsecond
+  void u8g_10MicroDelay(void)	Delay by 10 microseconds
+
+*/
+void u8g_Delay(uint16_t val)
+{
+  usleep(1000UL*(uint32_t)val);
+}
+
+void u8g_MicroDelay(void)
+{
+  usleep(1);
+}
+
+void u8g_10MicroDelay(void)
+{
+  usleep(10);
+}
+
 void u8g_linux_Init(u8g_t *u8g, int argc, const char *argv[])
 {
   uint8_t ok = 255;
