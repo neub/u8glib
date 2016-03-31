@@ -61,7 +61,7 @@ void u8g_linux_Init(u8g_t *u8g, int argc, const char *argv[])
   // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1306_64x48_2x_i2c, i2c_bus,rst_gpio);
   // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1306_64x48_i2c, i2c_bus,rst_gpio);
   // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1306_adafruit_128x64_i2c, i2c_bus,rst_gpio);
-  // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1309_128x64_i2c, i2c_bus,rst_gpio);
+  ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1309_128x64_i2c, i2c_bus,rst_gpio);
   // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1327_96x96_2x_gr_i2c, i2c_bus,rst_gpio);
   // ok = u8g_InitI2CRst(u8g, &u8g_dev_ssd1327_96x96_gr_i2c, i2c_bus,rst_gpio);
 
