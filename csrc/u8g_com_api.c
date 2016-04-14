@@ -47,19 +47,19 @@ void u8g_StopCom(u8g_t *u8g, u8g_dev_t *dev)
 }
 
 /* cs contains the chip number, which should be enabled */
-void u8g_SetChipSelect(u8g_t *u8g, u8g_dev_t *dev, uint8_t cs)
+uint8_t u8g_SetChipSelect(u8g_t *u8g, u8g_dev_t *dev, uint8_t cs)
 {
-  dev->com_fn(u8g, U8G_COM_MSG_CHIP_SELECT, cs, NULL);
+  return dev->com_fn(u8g, U8G_COM_MSG_CHIP_SELECT, cs, NULL);
 }
 
-void u8g_SetResetLow(u8g_t *u8g, u8g_dev_t *dev)
+uint8_t u8g_SetResetLow(u8g_t *u8g, u8g_dev_t *dev)
 {
-  dev->com_fn(u8g, U8G_COM_MSG_RESET, 0, NULL);
+  return dev->com_fn(u8g, U8G_COM_MSG_RESET, 0, NULL);
 }
 
-void u8g_SetResetHigh(u8g_t *u8g, u8g_dev_t *dev)
+uint8_t u8g_SetResetHigh(u8g_t *u8g, u8g_dev_t *dev)
 {
-  dev->com_fn(u8g, U8G_COM_MSG_RESET, 1, NULL);
+  return dev->com_fn(u8g, U8G_COM_MSG_RESET, 1, NULL);
 }
 
 
@@ -143,16 +143,17 @@ uint8_t u8g_WriteEscSeqP(u8g_t *u8g, u8g_dev_t *dev, const uint8_t *esc_seq)
       }
       else if ( value >= 0xd0 )
       {
-        u8g_SetChipSelect(u8g, dev, value & 0x0f);
+        //In case chip select return an error we skip the procedure
+        if(u8g_SetChipSelect(u8g, dev, value & 0x0f)==0) return 0;
       }
       else if ( value >= 0xc0 )
       {
-        u8g_SetResetLow(u8g, dev);
+        if(u8g_SetResetLow(u8g, dev)==0) return 0;
         value &= 0x0f;
         value <<= 4;
         value+=2;
         u8g_Delay(value);
-        u8g_SetResetHigh(u8g, dev);
+        if(u8g_SetResetHigh(u8g, dev)==0) return 0;
         u8g_Delay(value);
       }
       else if ( value >= 0xbe )

@@ -904,9 +904,9 @@ uint8_t u8g_InitCom(u8g_t *u8g, u8g_dev_t *dev, uint8_t clk_cycle_time);
 void u8g_StopCom(u8g_t *u8g, u8g_dev_t *dev);
 void u8g_EnableCom(u8g_t *u8g, u8g_dev_t *dev);         /* obsolete */
 void u8g_DisableCom(u8g_t *u8g, u8g_dev_t *dev);        /* obsolete */
-void u8g_SetChipSelect(u8g_t *u8g, u8g_dev_t *dev, uint8_t cs);
-void u8g_SetResetLow(u8g_t *u8g, u8g_dev_t *dev);
-void u8g_SetResetHigh(u8g_t *u8g, u8g_dev_t *dev);
+uint8_t u8g_SetChipSelect(u8g_t *u8g, u8g_dev_t *dev, uint8_t cs);
+uint8_t u8g_SetResetLow(u8g_t *u8g, u8g_dev_t *dev);
+uint8_t u8g_SetResetHigh(u8g_t *u8g, u8g_dev_t *dev);
 void u8g_SetAddress(u8g_t *u8g, u8g_dev_t *dev, uint8_t address);
 uint8_t u8g_WriteByte(u8g_t *u8g, u8g_dev_t *dev, uint8_t val);
 uint8_t u8g_WriteSequence(u8g_t *u8g, u8g_dev_t *dev, uint8_t cnt, uint8_t *seq);
