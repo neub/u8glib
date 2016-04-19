@@ -62,6 +62,8 @@
 #define I2C_DATA_MODE	0x40
 #define MAX_PACKET      64
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 
 #ifndef U8G_WITH_PINLIST
 #error U8G_WITH_PINLIST is mandatory for this driver
@@ -109,7 +111,7 @@ static uint8_t send_data_burst(u8g_t *u8g, int fd, uint8_t *buf, size_t buflen)
 
   res = write(fd, i2cbuf, i2clen);
   if (res < 0)
-    fprintf(stderr, "I2C write failed (%s)\n", strerror(errno));
+    fprintf(stderr, "I2C write failed %s(%s)\n", (errno==ENXIO)?("to chip " TOSTRING(I2C_SLA) " "):"",strerror(errno));
   else if (res != i2clen)
     fprintf(stderr, "Incomplete I2C write (%d of %d packet)\n", res, i2clen);
 
@@ -128,18 +130,12 @@ uint8_t u8g_com_linux_ssd_i2c_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
     case U8G_COM_MSG_INIT:
       sprintf(dev, "/dev/i2c-%d", u8g->pin_list[U8G_PI_I2C_OPTION]);
       fd = open(dev, O_RDWR);
-      if (fd < 0) {
-	fprintf(stderr, "cannot open %s (%s)\n", dev, strerror(errno));
-	return 0;
+      if (fd < 0)
+      {
+        fprintf(stderr, "cannot open %s (%s)\n", dev, strerror(errno));
+        return 0;
       }
-
-      if (ioctl(fd, I2C_SLAVE, I2C_SLA) < 0) {
-	fprintf(stderr, "cannot set slave address (%s)\n", strerror(errno));
-	return 0;
-      }
-
       break;
-
     case U8G_COM_MSG_STOP:
       /* ignored - i2c-dev will automatically stop between writes */
       break;
@@ -163,9 +159,7 @@ uint8_t u8g_com_linux_ssd_i2c_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
       sprintf(buf,"%s/gpio%d/value",SYS_GPIO_PREFIX,SYS_GPIO_OFFSET+u8g->pin_list[U8G_PI_RESET]);
       f = fopen(buf,"w");
       if(!f) { fprintf(stderr, "error opening %s (%s)\n", buf, strerror(errno)); return 0; }
-      fprintf(f,"0");
-      usleep(100);
-      fprintf(f,"1");
+      fprintf(f,(arg_val)?"1":"0");
       fclose(f);
       /* unexport GPIO */
       snprintf(buf,sizeof(buf),"%s/unexport",SYS_GPIO_PREFIX);
@@ -178,10 +172,18 @@ uint8_t u8g_com_linux_ssd_i2c_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
 
     case U8G_COM_MSG_CHIP_SELECT:
       set_cmd_mode(u8g, true);
+      if(arg_val) //Called with arg_val=1 after first reset
+      {
+        if(ioctl(fd, I2C_SLAVE, I2C_SLA) != 0)
+        {
+          fprintf(stderr, "Failed to acquire bus access and/or talk to slave: %s.\n", strerror(errno));
+          return 0;
+        }
+      }
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      send_data_burst(u8g, fd, &arg_val, 1);
+      if(send_data_burst(u8g, fd, &arg_val, 1)!=1) return 0;
       break;
 
     case U8G_COM_MSG_WRITE_SEQ:
